@@ -1,0 +1,6 @@
+com\mycompany\onlinebanking\resources\AccountResource.class
+com\mycompany\onlinebanking\service\AccountService.class
+.netbeans_automatic_build
+com\mycompany\onlinebanking\model\Account.class
+com\mycompany\onlinebanking\model\Customer.class
+com\mycompany\onlinebanking\model\Transaction.class
