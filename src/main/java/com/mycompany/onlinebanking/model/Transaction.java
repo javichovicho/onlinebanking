@@ -33,6 +33,10 @@ public class Transaction implements Serializable{
     private String type;
     private String description;
     private double amount;
+    // SHOULD HAVE A DATE PROCESSED VARIABLE
+    // Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+    // "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    // The above goes in the entry point/method in resource class
     @ManyToOne(fetch=FetchType.EAGER) // EAGER - fetch all of the relationships
     @JoinColumn(name="account_id")
     private Account account;

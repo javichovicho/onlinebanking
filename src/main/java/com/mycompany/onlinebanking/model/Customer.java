@@ -52,6 +52,10 @@ public class Customer implements Serializable{
         this.name = name;
     }
 
+    public Customer(int id) {
+        this.id = id;
+    }
+    
     public Customer(String name, int pin) {
         this.name = name;
         this.pin = pin;

@@ -54,6 +54,10 @@ public class Account implements Serializable{
         //transactions = new ArrayList<>();
     }
 
+    public Account(String type) {
+        this.type = type;
+    }
+
     public Account(int id, String type, int number, double balance, Customer customer) {
         this.id = id;
         this.type = type;

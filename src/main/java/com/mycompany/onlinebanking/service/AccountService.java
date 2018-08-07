@@ -44,10 +44,10 @@ public class AccountService {
     //based on the message id in the HTTP call
     public Account getAccount(int id) {
         Account test = em.find(Account.class, id); 
-            // Close the entity manager and EM factory
-            em.close();
-            emf.close();
-            return test;
+        // Close the entity manager and EM factory
+        em.close();
+        emf.close();
+        return test;
     }
     
     // Return a single user instance from the DB, 

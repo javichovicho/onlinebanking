@@ -35,13 +35,14 @@ import javax.ws.rs.core.Response;
 //@Produces(MediaType.APPLICATION_JSON)
 public class AccountResource {
 
-    // http://127.0.0.1:49000/api/accounts/createUser
+    // http://127.0.0.1:49000/api/accounts/createCustomer
     // Postman body: {"name":"MrBrennan"}
-    // {"name":"Javier Gonzales,"pin":"1234"}
+    // {"name":"Javier Gonzales","pin":"1234"}
+    // CREATE CUSTOMER !!!
     @POST
-    @Path("/createUser")
+    @Path("/createCustomer")
         
-        public Response createUser(String body) {
+        public Response createCustomer(String body) {
 
         Gson gson = new Gson(); 
         Customer customer = gson.fromJson(body, Customer.class);
@@ -54,6 +55,7 @@ public class AccountResource {
     }
         
     // curl -v -X GET http://localhost:49000/api/accounts/customer/1
+    // GET CUSTOMER'S DETAILS !!!
     @GET
     @Path("/customer/{customerId}")
     //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
@@ -69,6 +71,7 @@ public class AccountResource {
     
     //http://127.0.0.1:49000/api/accounts/editCustomer/1
     //Postman body: {"name":"Eddy"}
+    // EDIT CUSTOMER'S NAME !!!
     @POST
     @Path("/editCustomer/{customerId}")
     public Response editUser(@PathParam("customerId") int id, String body) {
@@ -82,54 +85,76 @@ public class AccountResource {
         return Response.status(200).entity("Customer edited").build();
     }
     
-    // http://127.0.0.1:49000/api/accounts/createAccountExistingUser
-    // {"type":"Savings","number":"123456","balance":"0.0"}
+    // http://127.0.0.1:49000/api/accounts/createAccountExistingUser/1
+    // {"type":"Savings"}
+    // CREATE CUSTOMER ACCOUNT !!!
     @POST
-    @Path("/createAccountExistingUser")
+    @Path("/createAccountExistingUser/{customerId}")
     @Produces(MediaType.APPLICATION_XML)
-        // existing user
-        public Response createAccountExistingUser(String body) {
+    public Response createAccountExistingUser(@PathParam("customerId") int id,
+            String body) {
 
         Gson gson = new Gson(); 
-        //Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-        AccountService ms = new AccountService();
-        
-        /*User user1 = new User();
-        user1.setName("Meeeee");
-        user1.setOccupation("Driver");
-        ms.createUser(user1);*/
-        
-        Customer user1;
-        user1 = ms.getCustomer(1);
+        AccountService as = new AccountService();
 
-        Account m1 = gson.fromJson(body, Account.class);
+        Account a1 = gson.fromJson(body, Account.class);
         
-        Account m2 = new Account();
-        m2.setType("Current");
-        m2.setNumber(321456);
-        m2.setBalance(0.0);
-
-        //ms.createMessage(m2);
+        int ran = 0;
+        String flo = "";
+        for(int i = 0; i < 6; i++)
+            flo += (int)(Math.random()*10);
+        ran = Integer.parseInt(flo);
+        a1.setNumber(ran);
+        a1.setBalance(0.0);
         
-        m1.setCustomer(user1);
-        m2.setCustomer(user1);
-                
-        //ms.createUser(user1);  
-        //ms.createMessage(m1);  
+        Customer customer = new Customer(id);
         
-        ArrayList<Account> accounts = new ArrayList<>();
-        accounts.add(m1);
-        accounts.add(m2);
-        user1.setAccounts(accounts);
+        a1.setCustomer(customer);
         
-        //user1.getMess().add(m2);
-        //user1.getMess().add(m1);
-        System.out.println("In cremess2, user object in java: " + user1.toString());
-        //ms.createUser(user1);
-        ms.updateCustomer(user1);
-        //return Response.status(200).entity(gson.toJson(m1)).build();
-        return Response.status(200).entity(m1).build();
+        as.createAccount(a1);
+        
+        return Response.status(200).entity("Account added to " + a1.getCustomer()).build();
     }
+    /*    
+    // http://localhost:49000/api/accounts/1
+    // GET ACCOUNT INFO ON ID - simple!!!
+    @GET
+    @Path("{accountId}")
+    //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getAccountById(@PathParam("accountId") int id) {
+
+       Gson gson = new Gson();
+       AccountService as = new AccountService();
+
+       return Response.status(200).entity((as.getAccount(id))).build();
+    }
+    */
+    // http://localhost:49000/api/accounts/customer/1/account/2
+    // GET ACCOUNT INFO ON ID and user id !!!
+    // Got up to here Tuesday 7/08/2018 12:10 pm
+    @GET
+    @Path("/customer/{customerId}/account/{accountId}")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getAccountByUserId(@PathParam("customerId") int id, 
+        @PathParam("accountId") int aid) {
+        
+        Gson gson = new Gson();
+        AccountService as = new AccountService();
+        
+        // Find the user by id
+        Customer customer = as.getCustomer(id);
+        
+        // Find/match account by id
+        List list = customer.getAccounts();
+        for(int i = 0; i < list.size(); i++){
+            Account account = (Account)list.get(i);
+            if(account.getId() == aid)
+                return Response.status(200).entity(account).build();
+        }
+        return Response.status(200).entity(Response.Status.NOT_FOUND).build();
+    }
+        
     // http://127.0.0.1:49000/api/accounts/createAccountNewUser
     // {"type":"Savings","number":"123456","balance":"0.0"}
     @POST
