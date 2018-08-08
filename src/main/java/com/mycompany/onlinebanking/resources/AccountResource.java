@@ -69,8 +69,8 @@ public class AccountResource {
        return Response.status(200).entity(ms.getCustomer(id)).build();
     }
     
-    //http://127.0.0.1:49000/api/accounts/editCustomer/1
-    //Postman body: {"name":"Eddy"}
+    // http://127.0.0.1:49000/api/accounts/editCustomer/1
+    // Postman body: {"name":"Eddy"}
     // EDIT CUSTOMER'S NAME !!!
     @POST
     @Path("/editCustomer/{customerId}")
@@ -120,7 +120,7 @@ public class AccountResource {
     // GET ACCOUNT INFO ON ID - simple!!!
     @GET
     @Path("/account/{accountId}")
-    //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+    // @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_XML)
     public Response getAccountById(@PathParam("accountId") int id) {
 
@@ -135,7 +135,7 @@ public class AccountResource {
     // Got up to here Tuesday 7/08/2018 12:10 pm
     @GET
     @Path("/customer/{customerId}/account/{accountId}")
-    //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+    // @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_XML)
     public Response getAccountByUserId(@PathParam("customerId") int id, 
         @PathParam("accountId") int aid) {
@@ -155,62 +155,17 @@ public class AccountResource {
         }
         return Response.status(200).entity(Response.Status.NOT_FOUND).build();
     }
-    /*    
-    // http://127.0.0.1:49000/api/accounts/createAccountNewUser
-    // {"type":"Savings","number":"123456","balance":"0.0"}
-    @POST
-    @Path("/createAccountNewUser")
-    @Produces(MediaType.APPLICATION_XML)   
-        public Response createAccountNewUser(String body) {
-
-        Gson gson = new Gson(); 
-        //Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
-        AccountService ms = new AccountService();
-        
-        Customer user1 = new Customer();
-        user1.setName("Meeeee2");
-        ms.createCustomer(user1);
-        
-        //User user1;
-        //user1 = ms.getUser(2);
-
-        Account m1 = gson.fromJson(body, Account.class);
-        
-        Account m2 = new Account();
-        m2.setType("Savings");
-        m2.setNumber(789123);
-        m2.setBalance(0.0);
-
-        //ms.createMessage(m2);
-        
-        m1.setCustomer(user1);
-        m2.setCustomer(user1);
-                
-        //ms.createUser(user1);  
-        //ms.createMessage(m1);  
-        
-        ArrayList<Account> accounts = new ArrayList<>();
-        accounts.add(m1);
-        accounts.add(m2);
-        user1.setAccounts(accounts);
-        
-        //user1.getMess().add(m2);
-        //user1.getMess().add(m1);
-        System.out.println("In cremess2, user object in java: " + user1.toString());
-        //ms.createUser(user1);
-        ms.updateCustomer(user1);
-        //return Response.status(200).entity(gson.toJson(m1)).build();
-        return Response.status(200).entity(m1).build();
-    }*/
     
+    // Lodgement when the user deposits money into an account
     // http://localhost:49000/api/accounts/createTransaction/1
-    // {"amount":"15.50","description":"pay","type":"lodgement","created": "2018-08-08"}
+    // {"amount":"15.50","description":"pay","type":"lodgement","created":"2018-08-08"}
     @POST
     @Path("/createTransaction/{accountId}")
     @Produces(MediaType.APPLICATION_XML)
     public Response createTransaction(@PathParam("accountId") int aid, String body) {
         
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        //Gson gson = new Gson();
         AccountService as = new AccountService();
         
         Transaction t1 = gson.fromJson(body, Transaction.class);
@@ -231,6 +186,71 @@ public class AccountResource {
         as.editAccount(updatedAccount, account.getId());
         
         return Response.status(200).entity("Transaction created").build();
+    }
+    
+    // http://localhost:49000/api/accounts/customer/7/pin/4444
+    // Validate User
+    @GET
+    @Path("/customer/{customerId}/pin/{pin}")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response AuthenticateCustomer(@PathParam("customerId") int id, 
+        @PathParam("pin") int pin) {
+        
+        Gson gson = new Gson();
+        AccountService as = new AccountService();
+        
+        // Find the user by name
+        Customer customer = as.getCustomer(id);
+        int verifyingPin = customer.getPin();
+        if(verifyingPin == pin){
+            return Response.status(200).entity("Credentials succesfully verified").build();
+        }
+        
+        return Response.status(200).entity(Response.Status.NOT_FOUND).build();
+    }
+    
+    // TRANSFER FROM ONE ACCOUNT TO ANOTHER
+    // http://localhost:49000/api/accounts/transfer/2/4
+    // Postman body: {"amount":"20","description":"save","type":"transfer","created":"2018-08-08"}
+    @POST
+    @Path("/transfer/{origin}/{recipient}")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response transferFunds(@PathParam("origin") int oid, 
+            @PathParam("recipient") int rid, String body){
+        
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        
+        AccountService as = new AccountService();
+            
+        Transaction t1 = gson.fromJson(body, Transaction.class);
+        
+        Account origin = as.getAccount(oid);
+        if(t1.getAmount() > origin.getBalance())
+            return Response.status(200).entity("No funds available").build();
+        Account newOrigin = new Account();
+        newOrigin.setId(origin.getId());
+        newOrigin.setType(origin.getType());
+        newOrigin.setNumber(origin.getNumber());
+        newOrigin.setBalance(origin.getBalance() - t1.getAmount());
+        newOrigin.setCustomer(origin.getCustomer());
+        
+        as.editAccount(newOrigin, origin.getId());
+        
+        Account recipient = as.getAccount(rid);
+        Account newRecipient = new Account();
+        newRecipient.setId(recipient.getId());
+        newRecipient.setType(recipient.getType());
+        newRecipient.setNumber(recipient.getNumber());
+        newRecipient.setBalance(recipient.getBalance() + t1.getAmount());
+        newRecipient.setCustomer(recipient.getCustomer());
+        
+        as.editAccount(newRecipient, recipient.getId());
+        
+        t1.setBalance(recipient.getBalance() + t1.getAmount());
+        t1.setAccount(origin);
+        as.lodge(t1);
+            
+        return Response.status(200).entity("Funds transferred").build();
     }
 
 }

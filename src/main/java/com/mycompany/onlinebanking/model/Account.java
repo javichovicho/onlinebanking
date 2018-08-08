@@ -41,6 +41,7 @@ public class Account implements Serializable{
     private String type;
     private int number;
     private double balance;
+    
     @ManyToOne(fetch=FetchType.EAGER) // EAGER - fetch all of the relationships
     @JoinColumn(name="customer_id")
     private Customer customer;

@@ -59,6 +59,7 @@ public class AccountService {
             //emf.close();
             return test;
     }
+
     /*public int getLength(){
         return length;
     }*/
@@ -117,8 +118,8 @@ public class AccountService {
         tx.begin();
         em.merge(account);
         tx.commit();
-        em.close();
-        emf.close();
+        //em.close();
+        //emf.close();
     }
     public void updateCustomer(Customer u1) {
             System.out.println("In updateUser, user object in java: " + u1.toString());
