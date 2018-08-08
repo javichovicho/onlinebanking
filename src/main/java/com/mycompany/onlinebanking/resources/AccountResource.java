@@ -135,6 +135,7 @@ public class AccountResource {
     // Got up to here Tuesday 7/08/2018 12:10 pm
     @GET
     @Path("/customer/{customerId}/account/{accountId}")
+    //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_XML)
     public Response getAccountByUserId(@PathParam("customerId") int id, 
         @PathParam("accountId") int aid) {
@@ -202,18 +203,32 @@ public class AccountResource {
         return Response.status(200).entity(m1).build();
     }*/
     
-    // http://localhost:49000/api/accounts/createTransaction
-    // {"amount":"15.50","description":"pay","type":"lodgement","account_id":"1"}
+    // http://localhost:49000/api/accounts/createTransaction/1
+    // {"amount":"15.50","description":"pay","type":"lodgement","created": "2018-08-08"}
     @POST
-    @Path("/createTransaction")
+    @Path("/createTransaction/{accountId}")
     @Produces(MediaType.APPLICATION_XML)
-    public Response createTransaction(String body) {
+    public Response createTransaction(@PathParam("accountId") int aid, String body) {
+        
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
         AccountService as = new AccountService();
         
         Transaction t1 = gson.fromJson(body, Transaction.class);
         
-        as.createTransaction(t1);
+        Account account = as.getAccount(aid);
+        double existingBalance = account.getBalance();
+        t1.setBalance(t1.getAmount() + existingBalance);
+        t1.setAccount(account);
+        
+        as.lodge(t1);
+        Account updatedAccount = new Account();
+        updatedAccount.setType(account.getType());
+        updatedAccount.setCustomer(account.getCustomer());
+        updatedAccount.setNumber(account.getNumber());
+        updatedAccount.setId(account.getId());
+        updatedAccount.setBalance(account.getBalance() + t1.getAmount());
+                
+        as.editAccount(updatedAccount, account.getId());
         
         return Response.status(200).entity("Transaction created").build();
     }

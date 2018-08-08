@@ -38,6 +38,8 @@ public class Customer implements Serializable{
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String name;
+    private String address;
+    private String email;
     private int pin;
     
     @LazyCollection(LazyCollectionOption.FALSE)
@@ -50,6 +52,13 @@ public class Customer implements Serializable{
     }
     public Customer(String name) {
         this.name = name;
+    }
+
+    public Customer(String name, String address, String email, int pin) {
+        this.name = name;
+        this.address = address;
+        this.email = email;
+        this.pin = pin;
     }
 
     public Customer(int id) {
@@ -78,6 +87,22 @@ public class Customer implements Serializable{
 
     public void setPin(int pin) {
         this.pin = pin;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public int getId() {

@@ -45,8 +45,8 @@ public class AccountService {
     public Account getAccount(int id) {
         Account test = em.find(Account.class, id); 
         // Close the entity manager and EM factory
-        em.close();
-        emf.close();
+        //em.close();
+        //emf.close();
         return test;
     }
     
@@ -62,7 +62,12 @@ public class AccountService {
     /*public int getLength(){
         return length;
     }*/
-
+    public Transaction getTransaction(int id){
+        Transaction test = em.find(Transaction.class, id);
+        em.close();
+        emf.close();
+        return test;
+    }
 
     
     // Messages are created, by creating/updating the User
@@ -155,6 +160,14 @@ public class AccountService {
         tx.begin();
         em.persist(t1);
         em.merge(updatedAccount);
+        tx.commit();
+    }
+    
+    public void lodge(Transaction t1){
+        int id = 1;
+        Transaction test = em.find(Transaction.class, id);
+        tx.begin();
+        em.persist(t1);
         tx.commit();
     }
 
