@@ -15,6 +15,7 @@ import com.mycompany.onlinebanking.service.AccountService;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -36,12 +37,14 @@ import javax.ws.rs.core.Response;
 public class AccountResource {
 
     // http://127.0.0.1:49000/api/accounts/createCustomer
-    // Postman body: {"name":"MrBrennan"}
-    // {"name":"Javier Gonzales","pin":"1234"}
+    // Postman body:
+    // {"name":"Javier Gonzales","address":"12 Twelve Street","email":"ja@go.com","pin":"1234"}
     // CREATE CUSTOMER !!!
     @POST
     @Path("/createCustomer")
-        
+    // @Produces(MediaType.APPLICATION_XML)
+    // @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
         public Response createCustomer(String body) {
 
         Gson gson = new Gson(); 
@@ -50,15 +53,22 @@ public class AccountResource {
         AccountService ms = new AccountService();
         
         ms.createCustomer(customer);
-        return Response.status(200).entity(gson.toJson("Customer: " + customer.getName() +
+        return Response.status(200)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(gson.toJson("Customer: " + customer.getName() +
                 " created.")).build();
+        // return Response.status(200)
+        //    .type(MediaType.APPLICATION_XML)
+        //    .entity(gson.toJson("Customer: " + customer.getName() +
+        //        " created.")).build();
+        
     }
         
     // curl -v -X GET http://localhost:49000/api/accounts/customer/1
     // GET CUSTOMER'S DETAILS !!!
     @GET
     @Path("/customer/{customerId}")
-    //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+    // @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_XML)
     public Response getCustomer(@PathParam("customerId") int id) {
 
@@ -251,6 +261,97 @@ public class AccountResource {
         as.lodge(t1);
             
         return Response.status(200).entity("Funds transferred").build();
+    }
+    
+    // http://127.0.0.1:49000/api/accounts/deleteCustomer/8
+    // DELETE CUSTOMER !!!
+    @DELETE
+    @Path("/deleteCustomer/{customerId}")
+    // @Produces(MediaType.APPLICATION_XML)
+    // @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+        public Response deleteCustomer(@PathParam("customerId") int id) {
+
+        Gson gson = new Gson(); 
+        
+        AccountService ms = new AccountService();
+        
+        try{
+            Customer customer = ms.getCustomer(id);
+            String name = customer.getName();
+            ms.deleteCustomer(id);
+            
+            return Response.status(200)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(gson.toJson("Customer " + name + " deleted.")).build();
+        }catch(Exception e){
+            // if customer not found
+            return Response.status(200).entity(Response.Status.NOT_FOUND).build();
+        }
+        
+        // return Response.status(200)
+        //    .type(MediaType.APPLICATION_XML)
+        //    .entity(gson.toJson("Customer: " + customer.getName() +
+        //        " created.")).build();
+        
+    }
+    
+    // http://127.0.0.1:49000/api/accounts/balance/3
+    // GET BALANCE for a specified account (id)
+    @GET
+    @Path("/balance/{accountId}")
+    //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getUserRating(@PathParam("accountId") int id) {
+
+        Gson gson = new Gson(); 
+        AccountService as = new AccountService();
+       
+        try{
+            Account account = as.getAccount(id);
+            String balance = "Balance for account with id: " + id + " is: " 
+                + account.getBalance() + " euro";
+            
+            return Response.status(200).entity(balance).build();
+            
+        }catch(Exception e){
+            // if account not found
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+    
+    // http://127.0.0.1:49000/api/accounts/deleteAccount/3
+    // DELETE ACCOUNT !!!
+    @DELETE
+    @Path("/deleteAccount/{accountId}")
+    // @Produces(MediaType.APPLICATION_XML)
+    // @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+        public Response deleteAccount(@PathParam("accountId") int id) {
+
+        Gson gson = new Gson(); 
+        
+        AccountService ms = new AccountService();
+        
+        try{
+            Account account = ms.getAccount(id);
+            int number = account.getNumber();
+            ms.deleteAccount(id);
+            
+            return Response.status(200)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(gson.toJson("Account with number: " + 
+                        number + " deleted.")).build();
+        }catch(Exception e){
+            // if account not found
+            return Response.status(200).entity(Response.Status.NOT_FOUND).build();
+        }
+        
+        // return Response.status(200)
+        //    .type(MediaType.APPLICATION_XML)
+        //    .entity(gson.toJson("Customer: " + customer.getName() +
+        //        " created.")).build();
+        
     }
 
 }

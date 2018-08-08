@@ -133,18 +133,6 @@ public class AccountService {
             emf.close();
     }
     
-    /*public void addUserMessages(User u1, Message m1, Message m2) {
-       
-            tx.begin();
-            em.persist(u1);
-            em.persist(m1);
-            em.persist(m2);
-            tx.commit();
-            
-            em.close();
-            emf.close();
-    }*/
-    
     public void createTransaction(Transaction t1){
         System.out.println("In createUser, user object in java: " + t1.toString());
         int id = 1;
@@ -170,6 +158,28 @@ public class AccountService {
         tx.begin();
         em.persist(t1);
         tx.commit();
+    }
+    
+    public void deleteCustomer(int id){
+        Customer test = em.find(Customer.class, id);
+        if(test != null){
+            tx.begin();
+            em.remove(test);
+            tx.commit();
+            // em.close();
+        }
+            
+    }
+    
+    public void deleteAccount(int id){
+        Account test = em.find(Account.class, id);
+        if(test != null){
+            tx.begin();
+            em.remove(test);
+            tx.commit();
+            // em.close();
+        }
+            
     }
 
 }
