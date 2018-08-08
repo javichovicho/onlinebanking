@@ -115,11 +115,11 @@ public class AccountResource {
         
         return Response.status(200).entity("Account added to " + a1.getCustomer()).build();
     }
-    /*    
+      
     // http://localhost:49000/api/accounts/1
     // GET ACCOUNT INFO ON ID - simple!!!
     @GET
-    @Path("{accountId}")
+    @Path("/account/{accountId}")
     //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_XML)
     public Response getAccountById(@PathParam("accountId") int id) {
@@ -129,7 +129,7 @@ public class AccountResource {
 
        return Response.status(200).entity((as.getAccount(id))).build();
     }
-    */
+    
     // http://localhost:49000/api/accounts/customer/1/account/2
     // GET ACCOUNT INFO ON ID and user id !!!
     // Got up to here Tuesday 7/08/2018 12:10 pm
@@ -154,7 +154,7 @@ public class AccountResource {
         }
         return Response.status(200).entity(Response.Status.NOT_FOUND).build();
     }
-        
+    /*    
     // http://127.0.0.1:49000/api/accounts/createAccountNewUser
     // {"type":"Savings","number":"123456","balance":"0.0"}
     @POST
@@ -170,8 +170,8 @@ public class AccountResource {
         user1.setName("Meeeee2");
         ms.createCustomer(user1);
         
-        /*User user1;
-        user1 = ms.getUser(2);*/
+        //User user1;
+        //user1 = ms.getUser(2);
 
         Account m1 = gson.fromJson(body, Account.class);
         
@@ -200,22 +200,7 @@ public class AccountResource {
         ms.updateCustomer(user1);
         //return Response.status(200).entity(gson.toJson(m1)).build();
         return Response.status(200).entity(m1).build();
-    }
-        
-    // http://localhost:49000/api/accounts/1
-    @GET
-    @Path("/{accountId}")
-    //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
-    @Produces(MediaType.APPLICATION_XML)
-    public Response getAccount(@PathParam("accountId") int id) {
-
-       Gson gson = new Gson(); 
-       AccountService ms = new AccountService();
-
-       //return Response.status(200).entity(gson.toJson(ms.getMessage(id))).build();
-
-       return Response.status(200).entity((ms.getAccount(id))).build();
-    }
+    }*/
     
     // http://localhost:49000/api/accounts/createTransaction
     // {"amount":"15.50","description":"pay","type":"lodgement","account_id":"1"}
@@ -223,11 +208,10 @@ public class AccountResource {
     @Path("/createTransaction")
     @Produces(MediaType.APPLICATION_XML)
     public Response createTransaction(String body) {
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        AccountService as = new AccountService();
         
         Transaction t1 = gson.fromJson(body, Transaction.class);
-        
-        AccountService as = new AccountService();
         
         as.createTransaction(t1);
         

@@ -96,6 +96,7 @@ public class AccountService {
             System.out.println("In updateUser, user object in java: " + u1.toString());
             Customer test = em.find(Customer.class, id);
             u1.setId(id);
+            u1.setPin(test.getPin());
             tx.begin();
             em.merge(u1);
             tx.commit();

@@ -7,6 +7,7 @@
 package com.mycompany.onlinebanking.model;
 
 import java.io.Serializable;
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -37,6 +38,8 @@ public class Transaction implements Serializable{
     // Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
     // "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
     // The above goes in the entry point/method in resource class
+    private Date created;
+    private double balance; // From the account class
     @ManyToOne(fetch=FetchType.EAGER) // EAGER - fetch all of the relationships
     @JoinColumn(name="account_id")
     private Account account;
@@ -72,6 +75,22 @@ public class Transaction implements Serializable{
 
     public void setAmount(double amount) {
         this.amount = amount;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public double getBalance() {
+        return balance;
     }
 
     public int getId() {
