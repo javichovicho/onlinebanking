@@ -96,6 +96,7 @@ public class AccountResource {
     }
     
     // http://127.0.0.1:49000/api/accounts/createAccountExistingUser/1
+    // Postman body:
     // {"type":"Savings"}
     // CREATE CUSTOMER ACCOUNT !!!
     @POST
@@ -142,7 +143,6 @@ public class AccountResource {
     
     // http://localhost:49000/api/accounts/customer/1/account/2
     // GET ACCOUNT INFO ON ID and user id !!!
-    // Got up to here Tuesday 7/08/2018 12:10 pm
     @GET
     @Path("/customer/{customerId}/account/{accountId}")
     // @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
@@ -168,6 +168,7 @@ public class AccountResource {
     
     // Lodgement when the user deposits money into an account
     // http://localhost:49000/api/accounts/createTransaction/1
+    // Postman body:
     // {"amount":"15.50","description":"pay","type":"lodgement","created":"2018-08-08"}
     @POST
     @Path("/createTransaction/{accountId}")
@@ -221,7 +222,8 @@ public class AccountResource {
     
     // TRANSFER FROM ONE ACCOUNT TO ANOTHER
     // http://localhost:49000/api/accounts/transfer/2/4
-    // Postman body: {"amount":"20","description":"save","type":"transfer","created":"2018-08-08"}
+    // Postman body:
+    // {"amount":"20","description":"save","type":"transfer","created":"2018-08-08"}
     @POST
     @Path("/transfer/{origin}/{recipient}")
     @Produces(MediaType.APPLICATION_XML)
@@ -302,7 +304,7 @@ public class AccountResource {
     @Path("/balance/{accountId}")
     //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
     @Produces(MediaType.APPLICATION_XML)
-    public Response getUserRating(@PathParam("accountId") int id) {
+    public Response getAccountBalance(@PathParam("accountId") int id) {
 
         Gson gson = new Gson(); 
         AccountService as = new AccountService();
@@ -331,12 +333,12 @@ public class AccountResource {
 
         Gson gson = new Gson(); 
         
-        AccountService ms = new AccountService();
+        AccountService as = new AccountService();
         
         try{
-            Account account = ms.getAccount(id);
+            Account account = as.getAccount(id);
             int number = account.getNumber();
-            ms.deleteAccount(id);
+            as.deleteAccount(id);
             
             return Response.status(200)
                 .type(MediaType.APPLICATION_JSON)
@@ -349,9 +351,140 @@ public class AccountResource {
         
         // return Response.status(200)
         //    .type(MediaType.APPLICATION_XML)
-        //    .entity(gson.toJson("Customer: " + customer.getName() +
-        //        " created.")).build();
+        //    .entity(gson.toJson("Account with number: " +
+        //        number + " deleted.")).build();
         
+    }
+        
+    // Withdraw money from account
+    // http://localhost:49000/api/accounts/withdraw/2
+    // Postman body: 
+    // {"amount":"10","description":"cash out","type":"withdrawal","created":"2018-08-08"}
+    @POST
+    @Path("/withdraw/{origin}")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response withdrawFunds(@PathParam("origin") int oid, String body){
+        
+        Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
+        
+        AccountService as = new AccountService();
+            
+        Transaction t1 = gson.fromJson(body, Transaction.class);
+        
+        Account origin = as.getAccount(oid);
+        if(t1.getAmount() > origin.getBalance())
+            return Response.status(200).entity("No funds available").build();
+        Account newOrigin = new Account();
+        newOrigin.setId(origin.getId());
+        newOrigin.setType(origin.getType());
+        newOrigin.setNumber(origin.getNumber());
+        double fundsWithdrawn = t1.getAmount();
+        newOrigin.setBalance(origin.getBalance() - t1.getAmount());
+        newOrigin.setCustomer(origin.getCustomer());
+        
+        as.editAccount(newOrigin, origin.getId());
+        
+        t1.setBalance(origin.getBalance());
+        t1.setAccount(origin);
+        as.lodge(t1);
+            
+        return Response.status(200).entity("Funds withdrawn: " + 
+                fundsWithdrawn).build();
+    }
+    
+    // http://127.0.0.1:49000/api/accounts/deleteTransaction/9
+    // DELETE Transaction !!!
+    @DELETE
+    @Path("/deleteTransaction/{transactionId}")
+    // @Produces(MediaType.APPLICATION_XML)
+    // @Produces(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+        public Response deleteTransaction(@PathParam("transactionId") int id) {
+
+        Gson gson = new Gson();
+        
+        AccountService as = new AccountService();
+        
+        try{
+            Transaction transaction = as.getTransaction(id);
+            int number = transaction.getId();
+            as.deleteTransaction(id);
+            
+            return Response.status(200)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(gson.toJson("Transaction with id: " + 
+                        number + " deleted.")).build();
+        }catch(Exception e){
+            // if account not found
+            return Response.status(200).entity(Response.Status.NOT_FOUND).build();
+        }
+        
+        // return Response.status(200)
+        //    .type(MediaType.APPLICATION_XML)
+        //    .entity(gson.toJson("Transaction with id: " + 
+        //        number + " deleted.")).build();
+        
+    }
+        
+    // Withdraw money from account by specifying name, pin and account number
+    // http://localhost:49000/api/accounts/withdraw/Stuart/5566/609837/5
+    @POST
+    @Path("/withdraw/{customerName}/{pin}/{accNum}/{amount}")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response withdraw(@PathParam("customerName") String name,
+            @PathParam("pin") int pin, @PathParam("accNum") int num,
+            @PathParam("amount") double amount){
+        
+        Gson gson = new Gson();
+        
+        AccountService as = new AccountService();
+        // get customer validated
+        int id = as.getCustomerIdByName(name);
+        Customer customer = as.getCustomer(id);
+        // get account
+        if(customer.getPin() != pin)
+            return Response.status(200).entity("Sorry wrong pin").build();
+        // check if funds available
+        int aid = as.getAccountIdByNumber(num);
+        Account account = as.getAccount(aid);
+        if(account.getBalance() < amount)
+            return Response.status(200).entity("Insufficient funds").build();
+        account.setBalance(account.getBalance() - amount);
+        // update account
+        as.editAccount(account, aid);
+        // create transaction record
+        Transaction transaction = new Transaction("Withdrawal", "Cash out", amount);
+        transaction.setBalance(account.getBalance());
+        transaction.setCreated(new Date());
+        transaction.setAccount(account);
+        as.lodge(transaction);
+        
+        return Response.status(200).entity("Here's your cash: " + amount + " euro.").build();
+        
+        //return Response.status(200).entity("Funds withdrawn: " + 
+        //        amount).build();
+    }
+    
+    // http://127.0.0.1:49000/api/accounts/transaction/3
+    // GET TRANSACTION DETAILS
+    @GET
+    @Path("/transaction/{transactionId}")
+    //@Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getTransactionDetails(@PathParam("transactionId") int id) {
+
+        Gson gson = new Gson(); 
+        AccountService as = new AccountService();
+       
+        try{
+            Transaction transaction = as.getTransaction(id);
+            
+            return Response.status(200).entity(transaction).build();
+            
+        }catch(Exception e){
+            // if transaction not found
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 
 }

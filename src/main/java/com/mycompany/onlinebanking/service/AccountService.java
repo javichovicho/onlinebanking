@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 /**
  * 01/08/2018
  * @author jagon
@@ -33,7 +34,7 @@ public class AccountService {
     int length;
            
     public AccountService() {
-        System.out.println("Message Service constructor");
+        System.out.println("Account Service constructor");
     }
     
     /*public List<Message> getAllMessages() {
@@ -65,8 +66,8 @@ public class AccountService {
     }*/
     public Transaction getTransaction(int id){
         Transaction test = em.find(Transaction.class, id);
-        em.close();
-        emf.close();
+        //em.close();
+        //emf.close();
         return test;
     }
 
@@ -103,6 +104,8 @@ public class AccountService {
             Customer test = em.find(Customer.class, id);
             u1.setId(id);
             u1.setPin(test.getPin());
+            u1.setAddress(test.getAddress());
+            u1.setEmail(test.getEmail());
             tx.begin();
             em.merge(u1);
             tx.commit();
@@ -175,11 +178,41 @@ public class AccountService {
         Account test = em.find(Account.class, id);
         if(test != null){
             tx.begin();
-            em.remove(test);
+            Query query = em.createNativeQuery("DELETE FROM ACCOUNT WHERE ID = " + id);
+            query.executeUpdate();
+            //em.remove(test);
             tx.commit();
             // em.close();
         }
             
+    }
+    // Resource: https://howtodoinjava.com/jpa/jpa-remove-delete-entity-example/
+    public void deleteTransaction(int id){
+        Transaction test = em.find(Transaction.class, id);
+        if(test != null){
+            tx.begin();
+            Query query = em.createNativeQuery("DELETE FROM TRANSACTION WHERE ID = " + id);
+            query.executeUpdate();
+            //em.remove(test);
+            tx.commit();
+            //em.close();
+        }
+            
+    }
+    
+    public int getCustomerIdByName(String name){
+        int num = 1;
+        Customer test = em.find(Customer.class, num);
+        
+        int id = ((Number)(em.createNativeQuery("SELECT ID FROM CUSTOMER WHERE NAME LIKE \'" + name + 
+                "%\'").getSingleResult())).intValue();
+        return id;
+    }
+    
+    public int getAccountIdByNumber(int num){
+        int id = ((Number)(em.createNativeQuery("SELECT ID FROM ACCOUNT WHERE NUMBER = " + 
+                num).getSingleResult())).intValue();
+        return id;
     }
 
 }
