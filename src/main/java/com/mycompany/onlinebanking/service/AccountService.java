@@ -214,5 +214,14 @@ public class AccountService {
                 num).getSingleResult())).intValue();
         return id;
     }
+    
+    public boolean checkName(String name){
+        int id = ((Number)(em.createNativeQuery("SELECT ID FROM CUSTOMER WHERE NAME LIKE \'" + name + 
+                "%\'").getSingleResult())).intValue();
+        boolean condition = true;
+        if(id > 0)
+            condition = false;
+        return condition;
+    }
 
 }

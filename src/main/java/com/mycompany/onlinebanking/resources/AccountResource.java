@@ -50,9 +50,12 @@ public class AccountResource {
         Gson gson = new Gson(); 
         Customer customer = gson.fromJson(body, Customer.class);
         
-        AccountService ms = new AccountService();
+        AccountService as = new AccountService();
         
-        ms.createCustomer(customer);
+        if(as.checkName(customer.getName()))
+            return Response.status(200).entity("User name already exists").build();
+        
+        as.createCustomer(customer);
         return Response.status(200)
                 .type(MediaType.APPLICATION_JSON)
                 .entity(gson.toJson("Customer: " + customer.getName() +
@@ -73,10 +76,10 @@ public class AccountResource {
     public Response getCustomer(@PathParam("customerId") int id) {
 
        Gson gson = new Gson(); 
-       AccountService ms = new AccountService();
+       AccountService as = new AccountService();
 
        //return Response.status(200).entity(gson.toJson(ms.getUser(id))).build();
-       return Response.status(200).entity(ms.getCustomer(id)).build();
+       return Response.status(200).entity(as.getCustomer(id)).build();
     }
     
     // http://127.0.0.1:49000/api/accounts/editCustomer/1
@@ -87,10 +90,10 @@ public class AccountResource {
     public Response editUser(@PathParam("customerId") int id, String body) {
         
         Gson gson = new Gson(); 
-        AccountService ms = new AccountService();
+        AccountService as = new AccountService();
         
         Customer customer = gson.fromJson(body, Customer.class);
-        ms.editCustomer(customer, id);
+        as.editCustomer(customer, id);
         
         return Response.status(200).entity("Customer edited").build();
     }
@@ -124,10 +127,11 @@ public class AccountResource {
         
         as.createAccount(a1);
         
-        return Response.status(200).entity("Account added to " + a1.getCustomer()).build();
+        return Response.status(200).entity("Account added to customer with id: " 
+                + a1.getCustomer().getId()).build();
     }
       
-    // http://localhost:49000/api/accounts/1
+    // http://localhost:49000/api/accounts/account/1
     // GET ACCOUNT INFO ON ID - simple!!!
     @GET
     @Path("/account/{accountId}")
@@ -214,7 +218,7 @@ public class AccountResource {
         Customer customer = as.getCustomer(id);
         int verifyingPin = customer.getPin();
         if(verifyingPin == pin){
-            return Response.status(200).entity("Credentials succesfully verified").build();
+            return Response.status(200).entity("Credentials successfully verified").build();
         }
         
         return Response.status(200).entity(Response.Status.NOT_FOUND).build();

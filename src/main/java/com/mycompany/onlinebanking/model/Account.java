@@ -39,6 +39,7 @@ public class Account implements Serializable{
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String type;
+    private int sortCode;
     private int number;
     private double balance;
     
@@ -53,10 +54,12 @@ public class Account implements Serializable{
     
     public Account(){
         //transactions = new ArrayList<>();
+        sortCode = 5555;
     }
 
     public Account(String type) {
         this.type = type;
+        sortCode = 5555;
     }
 
     public Account(int id, String type, int number, double balance, Customer customer) {
@@ -65,6 +68,7 @@ public class Account implements Serializable{
         this.number = number;
         this.balance = balance;
         this.customer = customer;
+        sortCode = 5555;
     }
     
     public Account(int id, String type, int number, double balance){
@@ -72,6 +76,7 @@ public class Account implements Serializable{
         this.type = type;
         this.number = number;
         this.balance = balance;
+        sortCode = 5555;
         //transactions = new ArrayList<>();
     }
     
@@ -79,6 +84,7 @@ public class Account implements Serializable{
         this.id = id;
         this.type = type;
         this.number = number;
+        sortCode = 5555;
         //transactions = new ArrayList<>();
     }
 
@@ -96,6 +102,14 @@ public class Account implements Serializable{
 
     public void setBalance(double balance) {
         this.balance = balance;
+    }
+
+    public void setSortCode(int sortCode) {
+        this.sortCode = sortCode;
+    }
+
+    public int getSortCode() {
+        return sortCode;
     }
 
     public int getId() {
